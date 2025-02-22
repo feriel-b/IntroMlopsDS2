@@ -21,21 +21,23 @@ def prepare_data(train_path="churn_80.csv", test_path="churn_20.csv"):
         df_20[col].fillna(df_20[col].mean(), inplace=True)
 
     # Identify categorical features (including 'State')
-    categorical_features = ['State', 'International plan', 'Voice mail plan']
+    categorical_features = ['International plan', 'Voice mail plan']
     
     # Initialize the OrdinalEncoder and apply it to both datasets
     encoder = OrdinalEncoder()
     df_80[categorical_features] = encoder.fit_transform(df_80[categorical_features])
     df_20[categorical_features] = encoder.transform(df_20[categorical_features])
+
+    # One-hot encode the "State" feature (to generate multiple columns, e.g., state_0 to state_6).
+    df_80 = pd.get_dummies(df_80, columns=["State"], prefix="state")
+    df_20 = pd.get_dummies(df_20, columns=["State"], prefix="state")
+    
     
     # Convert the Churn feature to int (if necessary)
     df_80['Churn'] = df_80['Churn'].astype(int)
     df_20['Churn'] = df_20['Churn'].astype(int)
     
-    # Optionally, you can keep the original column order if needed:
-    # columns_order = df_80.columns  # assuming both files share the same order
-    # df_80 = df_80[columns_order]
-    # df_20 = df_20[columns_order]
+   
 
     # Normalize data using MinMaxScaler
     scaler = MinMaxScaler()
@@ -52,6 +54,11 @@ def prepare_data(train_path="churn_80.csv", test_path="churn_20.csv"):
     y_train = df_80_scaled["Churn"]
     X_test = df_20_scaled.drop(columns=["Churn"])
     y_test = df_20_scaled["Churn"]
+    
+    pd.set_option('display.max_columns', None)
+
+    print(" Data preparation !")
+    print(X_train.head())
 
     return X_train, y_train, X_test, y_test
 
