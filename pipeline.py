@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 import joblib
 from sklearn.preprocessing import OrdinalEncoder, MinMaxScaler
 from sklearn.svm import SVC
@@ -9,6 +11,9 @@ import mlflow
 import mlflow.sklearn
 
 #warnings.filterwarnings("ignore")
+
+ # Set MLflow tracking URI
+mlflow.set_tracking_uri("http://localhost:5000")
 
 def prepare_data(train_path="churn_80.csv", test_path="churn_20.csv"):
     """Loads, cleans, and prepares data for training and evaluation using original ordinal encoding for categorical features."""
@@ -119,5 +124,34 @@ def evaluate_model(model, X_test, y_test):
     print(f"✅ Accuracy: {acc:.2f}")
     print("\n🔍 Classification Report:")
     print(classification_report(y_test, y_pred, target_names=["No Churn", "Churn"]))
-    return acc
-    
+    return acc, y_pred
+
+def plot_confusion_matrix(y_true, y_pred, classes=["No Churn", "Churn"], filename="confusion_matrix.png"):
+    """
+    Plots and saves a confusion matrix as an image file,
+    and logs it as an artifact to MLflow.
+    """
+    cm = confusion_matrix(y_true, y_pred)
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
+                xticklabels=classes, yticklabels=classes)
+    plt.xlabel("Predicted")
+    plt.ylabel("True")
+    plt.title("Confusion Matrix")
+    plt.tight_layout()
+    plt.savefig(filename)
+    print(f"💾 Confusion matrix saved as {filename}")
+    plt.close()
+    mlflow.log_artifact(filename)  # Log the confusion matrix image as an artifact in MLflow
+
+
+
+#"""Retrains the SVM model with new hyperparameters and saves it as the default model."""
+"""
+def retrain_model(C=1.0, kernel='rbf', gamma='scale'):
+    X_train, y_train, _, _ = prepare_data()
+    model = SVC(C=C, kernel=kernel, gamma=gamma, random_state=42)
+    model.fit(X_train, y_train)
+    joblib.dump(model, "churn_model.joblib")
+    print("✅ Model retrained and saved!")
+"""  

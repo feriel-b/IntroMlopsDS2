@@ -5,6 +5,7 @@ from pipeline import (
     evaluate_model,
     save_model,
     load_model,
+    plot_confusion_matrix
 )
 
 def main(args):
@@ -30,7 +31,7 @@ def main(args):
             for gamma in gamma_list:
                 for kernel in kernel_list:
                     print(f"\n🚀 Training with C={C}, gamma={gamma}, kernel={kernel}")
-                    model, test_acc = train_model(  # <- Modification ici
+                    model, test_acc = train_model( 
                         X_train, y_train, X_test, y_test,
                         C=C,
                         kernel=kernel,
@@ -60,7 +61,15 @@ def main(args):
         X_train, y_train, X_test, y_test = prepare_data("churn_80.csv", "churn_20.csv")
 
         print("\n🔍 Évaluation du modèle...")
-        evaluate_model(model, X_test, y_test)
+        acc, y_pred = evaluate_model(model, X_test, y_test)
+        
+        # Plot confusion matrix
+        plot_confusion_matrix(y_test, y_pred, classes=["No Churn", "Churn"], filename="confusion_matrix.png")
+        print("✅ Evaluation complete. Metrics and confusion matrix logged.")
+       
+        
+
+        
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pipeline de prédiction du Churn")
