@@ -11,3 +11,7 @@ category_encoders
 flake8
 black
 pytest
+pylint
+mypy 
+pytest 
+seaborn
