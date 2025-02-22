@@ -14,33 +14,43 @@ def main(args):
         print("✅ Données préparées et enregistrées !")
 
     elif args.train:
+        best_accuracy = 0
+        best_model = None
+        
         print("\n🚀 Chargement et préparation des données...")
         X_train, y_train, X_test, y_test = prepare_data("churn_80.csv", "churn_20.csv")
-
-        print("\n🎯 Entraînement du modèle avec hyperparameter tuning...")
-
-        # Define hyperparameter grid for SVM
+        
+        # Hyperparameter grid
         C_list = [0.1, 1.0, 10.0]
         gamma_list = ['scale', 'auto']
-        kernel_list = ['rbf']  # You can add more kernels if needed
-
-        # Grid search: train models with different hyperparameters
+        kernel_list = ['rbf']
+        
+        # Grid search
         for C in C_list:
             for gamma in gamma_list:
                 for kernel in kernel_list:
                     print(f"\n🚀 Training with C={C}, gamma={gamma}, kernel={kernel}")
-                    model = train_model(
+                    model, test_acc = train_model(  # <- Modification ici
                         X_train, y_train, X_test, y_test,
                         C=C,
                         kernel=kernel,
                         gamma=gamma
                     )
-
-                    # Save each trained model
-                    filename = f"churn_model_{C}_{kernel}_{gamma}.joblib"
+                    
+                    # Sauvegarder le modèle avec un nom unique
+                    filename = f"churnmodel_C{C}_kernel{kernel}_gamma{gamma}.joblib"
                     save_model(model, filename)
-
-        print("\n✅ Hyperparameter tuning completed and models saved!")
+                    
+                    # Mettre à jour le meilleur modèle
+                    if test_acc > best_accuracy:
+                        best_accuracy = test_acc
+                        best_model = model
+                        print(f"🔥 Nouveau meilleur modèle! Accuracy: {test_acc:.2f}")
+        
+        # Sauvegarder le meilleur modèle comme modèle par défaut
+        if best_model is not None:
+            save_model(best_model, "churn_model.joblib")
+            print(f"\n🏆 Meilleur modèle sauvegardé (Accuracy: {best_accuracy:.2f})")
 
     elif args.evaluate:
         print("\n📂 Chargement du modèle...")

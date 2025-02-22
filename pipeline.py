@@ -63,7 +63,7 @@ def prepare_data(train_path="churn_80.csv", test_path="churn_20.csv"):
     return X_train, y_train, X_test, y_test
 
 def train_model(X_train, y_train, X_test, y_test, C=1.0, kernel='rbf', gamma='scale'):
-    """Trains an SVM model and logs with MLflow."""
+    """Trains an SVM model and logs with MLflow, returns (model, test_accuracy)."""
     
     # Set MLflow tracking URI
     mlflow.set_tracking_uri("http://localhost:5000")
@@ -90,17 +90,19 @@ def train_model(X_train, y_train, X_test, y_test, C=1.0, kernel='rbf', gamma='sc
         joblib.dump(model, f"churn_model_{C}_{kernel}_{gamma}.joblib")
         print(f"✅ Model trained and logged with MLflow (C={C}, kernel={kernel}, gamma={gamma})")
 
-    return model
+    return model,test_acc
 
 def save_model(model, filename="churn_model.joblib"):
     """Saves the given model to a file."""
     joblib.dump(model, filename)
     print(f"💾 Model saved as {filename}")
 
-def load_model():
+def load_model(model_path="churn_model.joblib"):
     """Loads the trained model."""
-    return joblib.load("churn_model.joblib")
-
+    try:
+        return joblib.load(model_path)
+    except FileNotFoundError:
+        raise ValueError("Aucun modèle trouvé. Exécutez d'abord l'entraînement!")
 
 def retrain_model(C=1.0, kernel='rbf', gamma='scale'):
     """Retrains the SVM model with new hyperparameters."""
