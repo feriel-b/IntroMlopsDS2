@@ -5,7 +5,8 @@ from pipeline import (
     evaluate_model,
     save_model,
     load_model,
-    plot_confusion_matrix
+    plot_confusion_matrix,
+    plot_roc_curve
 )
 
 def main(args):
@@ -65,7 +66,14 @@ def main(args):
         
         # Plot confusion matrix
         plot_confusion_matrix(y_test, y_pred, classes=["No Churn", "Churn"], filename="confusion_matrix.png")
-        print("✅ Evaluation complete. Metrics and confusion matrix logged.")
+
+        # Compute probability estimates for the positive class
+        y_proba = model.predict_proba(X_test)[:, 1]
+        
+        # Plot and log the ROC curve
+        plot_roc_curve(y_test, y_proba, filename="roc_curve.png") 
+
+        print("✅ Evaluation complete. Metrics, confusion matrix and ROC curve logged.")
        
         
 

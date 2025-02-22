@@ -74,7 +74,7 @@ def train_model(X_train, y_train, X_test, y_test, C=1.0, kernel='rbf', gamma='sc
     mlflow.set_tracking_uri("http://localhost:5000")
 
     with mlflow.start_run():
-        model = SVC(C=C, kernel=kernel, gamma=gamma, random_state=42)
+        model = SVC(C=C, kernel=kernel, gamma=gamma, random_state=42,probability=True)
         model.fit(X_train, y_train)
 
         # Log hyperparameters for SVM
@@ -144,6 +144,39 @@ def plot_confusion_matrix(y_true, y_pred, classes=["No Churn", "Churn"], filenam
     plt.close()
     mlflow.log_artifact(filename)  # Log the confusion matrix image as an artifact in MLflow
 
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, auc
+
+def plot_roc_curve(y_true, y_score, filename="roc_curve.png"):
+    """
+    Plots the ROC curve and saves it as an image file,
+    and logs it as an artifact in MLflow.
+    
+    Parameters:
+    - y_true: Array-like of true binary labels.
+    - y_score: Array-like of predicted probabilities for the positive class.
+    - filename: Filename for the saved ROC curve image.
+    """
+    # Compute ROC curve and AUC score
+    fpr, tpr, thresholds = roc_curve(y_true, y_score)
+    roc_auc = auc(fpr, tpr)
+
+    plt.figure(figsize=(8, 6))
+    plt.plot(fpr, tpr, color="darkorange", lw=2, label=f"ROC curve (area = {roc_auc:.2f})")
+    plt.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title("Receiver Operating Characteristic")
+    plt.legend(loc="lower right")
+    plt.tight_layout()
+    plt.savefig(filename)
+    print(f"💾 ROC curve saved as {filename}")
+    plt.close()
+    
+    # Log the ROC curve image as an artifact in MLflow
+    mlflow.log_artifact(filename)
 
 
 #"""Retrains the SVM model with new hyperparameters and saves it as the default model."""
